@@ -52,6 +52,41 @@ namespace russu_vlad_proiect_final.Data
                 context.Orders.Add(o);
             }
             context.SaveChanges();
+
+            var labels = new Label[]
+            {
+                new Label{LabelName="Dirty Hit", Address="London, UK"},
+                new Label{LabelName="Universal Records", Address="Seattle, USA"},
+            };
+            foreach (Label l in labels)
+            {
+                context.Labels.Add(l);
+            }
+            context.SaveChanges();
+
+            var releasedAlbums = new ReleasedAlbum[]
+            {
+                new ReleasedAlbum
+                {
+                    AlbumID = albums.Single(c => c.Title == "Wasting Light").ID,
+                    LabelID = labels.Single(i => i.LabelName == "Universal Records").ID
+                },
+                new ReleasedAlbum
+                {
+                    AlbumID = albums.Single(c => c.Title == "Happier Than Ever").ID,
+                    LabelID = labels.Single(i => i.LabelName == "Universal Records").ID
+                },
+                new ReleasedAlbum
+                {
+                    AlbumID = albums.Single(c => c.Title == "Notes On A Conditional Form").ID,
+                    LabelID = labels.Single(i => i.LabelName == "Dirty Hit").ID
+                },
+            };
+            foreach (ReleasedAlbum ra in releasedAlbums)
+            {
+                context.ReleasedAlbums.Add(ra);
+            }
+            context.SaveChanges();
         }
     }
 }
