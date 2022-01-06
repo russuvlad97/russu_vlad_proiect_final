@@ -17,6 +17,6 @@ namespace russu_vlad_proiect_final.Models
 
         [StringLength(70)]
         public string Address { get; set; }
-        public ICollection<ReleasedAlbum> ReleasedAlbum { get; set; }
+        public ICollection<ReleasedAlbum> ReleasedAlbums { get; set; }
     }
 }
