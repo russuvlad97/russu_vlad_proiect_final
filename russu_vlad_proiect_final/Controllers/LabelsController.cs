@@ -98,12 +98,20 @@ namespace russu_vlad_proiect_final.Controllers
                 return NotFound();
             }
 
-            var label = await _context.Labels.FindAsync(id);
+            var label = await _context.Labels
+                .Include(i => i.ReleasedAlbums).ThenInclude(i => i.Album)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.ID == id);
+
             if (label == null)
             {
                 return NotFound();
             }
+
+            PopulateReleasedAlbumData(label);
+
             return View(label);
+
         }
 
         // POST: Labels/Edit/5
@@ -111,34 +119,39 @@ namespace russu_vlad_proiect_final.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,LabelName,Address")] Label label)
+        public async Task<IActionResult> Edit(int? id, string[] selectedAlbums)
         {
-            if (id != label.ID)
+            if (id == null)
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
+            var labelToUpdate = await _context.Labels
+                .Include(i => i.ReleasedAlbums)
+                .ThenInclude(i => i.Album)
+                .FirstOrDefaultAsync(m => m.ID == id);
+            if (await TryUpdateModelAsync<Label>(
+                labelToUpdate,
+                "",
+                i => i.LabelName, i => i.Address))
             {
+                UpdateReleasedAlbums(selectedAlbums, labelToUpdate);
                 try
                 {
-                    _context.Update(label);
                     await _context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateException /* ex */)
                 {
-                    if (!LabelExists(label.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+
+                    ModelState.AddModelError("", "Unable to save changes. " +
+                    "Try again, and if the problem persists, ");
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(label);
+
+            UpdateReleasedAlbums(selectedAlbums, labelToUpdate);
+            PopulateReleasedAlbumData(labelToUpdate);
+
+            return View(labelToUpdate);
         }
 
         // GET: Labels/Delete/5
@@ -173,6 +186,57 @@ namespace russu_vlad_proiect_final.Controllers
         private bool LabelExists(int id)
         {
             return _context.Labels.Any(e => e.ID == id);
+        }
+
+        private void PopulateReleasedAlbumData(Label label)
+        {
+            var allAlbums = _context.Albums;
+            var labelAlbums = new HashSet<int>(label.ReleasedAlbums.Select(c => c.AlbumID));
+            var viewModel = new List<ReleasedAlbumData>();
+            foreach (var album in allAlbums)
+            {
+                viewModel.Add(new ReleasedAlbumData
+                {
+                    AlbumID = album.ID,
+                    Title = album.Title,
+                    IsReleased = labelAlbums.Contains(album.ID)
+                });
+            }
+            ViewData["Albums"] = viewModel;
+        }
+
+        private void UpdateReleasedAlbums(string[] selectedAlbums, Label labelToUpdate )
+        {
+            if (selectedAlbums == null)
+            {
+                labelToUpdate.ReleasedAlbums = new List<ReleasedAlbum>();
+                return;
+            }
+            var selectedAlbumsHS = new HashSet<string>(selectedAlbums);
+            var releasedAlbums = new HashSet<int>
+            (labelToUpdate.ReleasedAlbums.Select(c => c.Album.ID));
+            foreach (var album in _context.Albums)
+            {
+                if (selectedAlbumsHS.Contains(album.ID.ToString()))
+                {
+                    if (!releasedAlbums.Contains(album.ID))
+                    {
+                        labelToUpdate.ReleasedAlbums.Add(new ReleasedAlbum
+                        {
+                            LabelID = labelToUpdate.ID,
+                            AlbumID = album.ID
+                        });
+                    }
+                }
+                else
+                {
+                    if (releasedAlbums.Contains(album.ID))
+                    {
+                        ReleasedAlbum albumToRemove = labelToUpdate.ReleasedAlbums.FirstOrDefault(i => i.AlbumID == album.ID);
+                        _context.Remove(albumToRemove);
+                    }
+                }
+            }
         }
     }
 }

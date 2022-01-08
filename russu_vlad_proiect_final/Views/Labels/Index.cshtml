@@ -49,3 +49,62 @@
         }
     </tbody>
 </table>
+
+@if (Model.Albums != null)
+{
+    <h3>Albums Published by Selected Publisher</h3>
+    <table class="table">
+        <tr>
+            <th></th>
+            <th>Title</th>
+            <th>Author</th>
+            <th>Price</th>
+        </tr>
+        @foreach (var item in Model.Albums)
+        {
+            string selectedRow = "";
+            if (item.ID == (int?)ViewData["AlbumID"])
+            {
+                selectedRow = "success";
+            }
+            <tr class="@selectedRow">
+                <td>
+                    @Html.ActionLink("Select", "Index", new { albumID = item.ID })
+                </td>
+                <td>
+                    @item.Title
+                </td>
+                <td>
+                    @item.Artist
+                </td>
+                <td>
+                    @item.Price
+                </td>
+            </tr>
+        }
+    </table>
+}
+
+@if (Model.Orders != null)
+{
+    <h3>
+        Customers that have ordered the Selected Album
+    </h3>
+    <table class="table">
+        <tr>
+            <th>Name</th>
+            <th>Order Date</th>
+        </tr>
+        @foreach (var item in Model.Orders)
+        {
+            <tr>
+                <td>
+                    @item.Customer.Name
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.OrderDate)
+                </td>
+            </tr>
+        }
+    </table>
+}
