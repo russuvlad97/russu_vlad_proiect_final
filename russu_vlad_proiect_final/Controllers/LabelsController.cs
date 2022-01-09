@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using russu_vlad_proiect_final.Models.RecordStoreViewModels;
 
 namespace russu_vlad_proiect_final.Controllers
 {
+    [Authorize(Policy = "OnlySales")]
     public class LabelsController : Controller
     {
         private readonly RecordStoreContext _context;

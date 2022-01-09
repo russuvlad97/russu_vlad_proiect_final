@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using russu_vlad_proiect_final.Data;
 using russu_vlad_proiect_final.Models;
 
 namespace russu_vlad_proiect_final.Controllers
 {
+    [Authorize(Roles = "Employee")]
     public class AlbumsController : Controller
     {
         private readonly RecordStoreContext _context;
@@ -20,6 +22,7 @@ namespace russu_vlad_proiect_final.Controllers
         }
 
         // GET: Albums
+        [AllowAnonymous]
         public async Task<IActionResult> Index(string sortOrder, string currentFilter, string searchString, int? pageNumber)
         {
             ViewData["CurrentSort"] = sortOrder;
@@ -63,6 +66,7 @@ namespace russu_vlad_proiect_final.Controllers
         }
 
         // GET: Albums/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
